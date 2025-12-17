@@ -1,0 +1,23 @@
+# Deep Learning Framework
+torch>=2.0.0
+numpy>=1.24.0
+
+# Property-Based Testing
+hypothesis>=6.82.0
+
+# Testing
+pytest>=7.4.0
+pytest-cov>=4.1.0
+
+# Data Processing and Visualization
+matplotlib>=3.7.0
+pandas>=2.0.0
+
+# Training Monitoring
+tensorboard>=2.14.0
+
+# GUI Framework
+PyQt6>=6.5.0
+
+# Utilities
+tqdm>=4.65.0

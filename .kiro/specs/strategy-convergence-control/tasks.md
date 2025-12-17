@@ -1,0 +1,125 @@
+# 实现计划
+
+- [x] 1. 创建遗憾值处理器模块
+  - [x] 1.1 创建 `training/regret_processor.py` 文件，定义 `RegretProcessorConfig` 和 `RegretProcessor` 类
+    - 实现配置数据类，包含 `use_positive_truncation`、`decay_factor`、`clip_threshold` 参数
+    - 实现 `truncate_positive` 方法进行正遗憾值截断
+    - 实现 `apply_decay` 方法进行遗憾值衰减
+    - 实现 `clip_regrets` 方法进行遗憾值裁剪
+    - _需求: 1.1, 1.2, 1.3_
+  - [x] 1.2 编写属性测试：正遗憾值截断保证非负
+    - **Property 1: 正遗憾值截断保证非负**
+    - **验证需求: 1.1, 6.2**
+  - [x] 1.3 编写属性测试：遗憾值衰减正确性
+    - **Property 2: 遗憾值衰减正确性**
+    - **验证需求: 1.2**
+  - [x] 1.4 编写属性测试：遗憾值裁剪边界
+    - **Property 3: 遗憾值裁剪边界**
+    - **验证需求: 1.3**
+
+- [x] 2. 创建CFR变体选择器模块
+  - [x] 2.1 创建 `training/cfr_variants.py` 文件，定义 `CFRVariant` 枚举和 `CFRVariantConfig` 类
+    - 实现 `CFRVariant` 枚举：STANDARD、CFR_PLUS、LCFR、DCFR
+    - 实现 `CFRVariantConfig` 配置类
+    - 实现 `compute_lcfr_weight` 方法计算LCFR线性权重
+    - 实现 `compute_dcfr_discount` 方法计算DCFR折扣因子
+    - _需求: 6.1, 6.2, 6.3, 6.4_
+  - [x] 2.2 编写属性测试：LCFR线性权重正确性
+    - **Property 9: LCFR线性权重正确性**
+    - **验证需求: 3.4, 6.3**
+  - [x] 2.3 编写属性测试：DCFR折扣因子正确性
+    - **Property 12: DCFR折扣因子正确性**
+    - **验证需求: 6.4**
+
+- [x] 3. 创建网络训练器模块
+  - [x] 3.1 创建 `training/network_trainer.py` 文件，定义 `NetworkTrainerConfig` 和 `NetworkTrainer` 类
+    - 实现配置数据类，包含 `use_huber_loss`、`huber_delta`、`use_ema`、`ema_decay`、`kl_coefficient`、`gradient_clip_norm` 参数
+    - 实现 `compute_huber_loss` 方法计算Huber损失
+    - 实现 `compute_kl_divergence` 方法计算KL散度
+    - 实现 `update_ema` 方法进行EMA更新
+    - 实现 `clip_gradients` 方法进行梯度裁剪
+    - _需求: 1.4, 3.1, 3.2, 3.3_
+  - [x] 3.2 编写属性测试：Huber损失计算正确性
+    - **Property 4: Huber损失计算正确性**
+    - **验证需求: 1.4**
+  - [x] 3.3 编写属性测试：EMA更新正确性
+    - **Property 6: EMA更新正确性**
+    - **验证需求: 3.1**
+  - [x] 3.4 编写属性测试：KL散度非负性
+    - **Property 7: KL散度非负性**
+    - **验证需求: 3.2**
+  - [x] 3.5 编写属性测试：梯度裁剪边界
+    - **Property 8: 梯度裁剪边界**
+    - **验证需求: 3.3**
+
+- [x] 4. Checkpoint - 确保所有测试通过
+  - 确保所有测试通过，如有问题请询问用户。
+
+- [x] 5. 创建缓冲区管理器模块
+  - [x] 5.1 创建 `training/buffer_manager.py` 文件，定义 `BufferManagerConfig` 和 `BufferManager` 类
+    - 实现配置数据类，包含 `time_decay_factor`、`importance_threshold`、`max_sample_age`、`stratified_sampling` 参数
+    - 实现 `sample_with_time_decay` 方法进行时间衰减采样
+    - 实现 `cleanup_old_samples` 方法清理过旧样本
+    - _需求: 5.1, 5.2, 5.3, 5.4_
+  - [x] 5.2 编写属性测试：时间衰减采样偏好近期样本
+    - **Property 11: 时间衰减采样偏好近期样本**
+    - **验证需求: 5.1**
+
+- [x] 6. 创建收敛监控器模块
+  - [x] 6.1 创建 `training/convergence_monitor.py` 文件，定义 `ConvergenceMonitorConfig` 和 `ConvergenceMonitor` 类
+    - 实现配置数据类，包含 `entropy_window`、`oscillation_threshold`、`kl_warning_threshold`、`monitor_interval` 参数
+    - 实现 `compute_entropy` 方法计算策略熵
+    - 实现 `compute_regret_stats` 方法计算遗憾值统计
+    - 实现 `detect_oscillation` 方法检测策略震荡
+    - 实现 `get_convergence_report` 方法获取收敛报告
+    - _需求: 4.1, 4.2, 4.3, 4.4_
+  - [x] 6.2 编写属性测试：策略熵计算正确性
+    - **Property 10: 策略熵计算正确性**
+    - **验证需求: 4.1**
+
+- [x] 7. 集成到河牌训练器
+  - [x] 7.1 修改 `train_river_only.py`，集成遗憾值处理器
+    - 在 `RiverOnlyTrainer.__init__` 中初始化 `RegretProcessor`
+    - 在 `traverse_river` 方法中使用 `truncate_positive` 处理遗憾值
+    - 在存储样本前使用 `clip_regrets` 裁剪遗憾值
+    - _需求: 1.1, 1.2, 1.3_
+  - [x] 7.2 修改 `train_river_only.py`，集成网络训练器
+    - 在 `RiverOnlyTrainer.__init__` 中初始化 `NetworkTrainer`
+    - 在 `train_networks` 方法中使用 `compute_huber_loss` 替代MSE损失
+    - 在训练后使用 `clip_gradients` 裁剪梯度
+    - 添加EMA目标网络更新逻辑
+    - _需求: 1.4, 3.1, 3.3_
+  - [x] 7.3 修改 `train_river_only.py`，集成收敛监控器
+    - 在 `RiverOnlyTrainer.__init__` 中初始化 `ConvergenceMonitor`
+    - 在训练循环中定期调用监控方法
+    - 输出收敛报告和震荡警告
+    - _需求: 4.1, 4.2, 4.3, 4.4_
+
+- [x] 8. 添加配置支持
+  - [x] 8.1 更新 `models/core.py` 中的 `TrainingConfig`，添加收敛控制相关配置
+    - 添加 `cfr_variant` 配置项
+    - 添加 `regret_decay_factor` 配置项
+    - 添加 `regret_clip_threshold` 配置项
+    - 添加 `use_huber_loss` 配置项
+    - 添加 `ema_decay` 配置项
+    - 添加 `gradient_clip_norm` 配置项
+    - _需求: 1.2, 1.3, 1.4, 3.1, 3.3, 6.1_
+  - [x] 8.2 创建 `configs/river_convergence_config.json` 配置文件
+    - 使用推荐的河牌训练配置
+    - 包含CFR+变体、遗憾值衰减、EMA更新等设置
+    - _需求: 所有需求_
+
+- [x] 9. Checkpoint - 确保所有测试通过
+  - 确保所有测试通过，如有问题请询问用户。
+
+- [x] 10. 编写方差控制相关功能
+  - [x] 10.1 在 `training/cfr_sampler.py` 中添加多次采样平均功能
+    - 实现 `sample_with_averaging` 方法，支持配置采样次数
+    - 计算多次采样的平均值
+    - _需求: 2.2_
+  - [x] 10.2 编写属性测试：多次采样降低方差
+    - **Property 5: 多次采样降低方差**
+    - **验证需求: 2.2**
+
+- [x] 11. Final Checkpoint - 确保所有测试通过
+  - 确保所有测试通过，如有问题请询问用户。

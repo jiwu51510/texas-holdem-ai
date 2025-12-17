@@ -1,0 +1,33 @@
+======================================================================
+收敛控制参数验证报告
+======================================================================
+生成时间: 2025-12-16 17:05:11
+
+实验结果摘要:
+----------------------------------------------------------------------
+配置名称                 遗憾损失         策略损失         熵趋势          震荡    
+----------------------------------------------------------------------
+round3_best          1.235147     0.995858     oscillating  是     
+higher_ema           1.005868     1.049841     increasing   是     
+ultra_ema            1.150630     0.907165     increasing   是     
+lower_lr             1.236234     0.911951     oscillating  是     
+tighter_clip         1.737313     0.581406     oscillating  是     
+stronger_decay       0.940691     0.989862     oscillating  是     
+lower_clip_threshold 0.638913     0.939756     oscillating  是     
+smaller_huber        0.488042     0.989997     decreasing   是     
+stable_combined      0.500640     1.033492     oscillating  是     
+ultra_stable         0.394877     0.915413     oscillating  是     
+
+比较分析:
+----------------------------------------------------------------------
+最佳遗憾损失: ultra_stable
+最佳策略损失: tighter_clip
+最稳定配置: None
+
+调优建议:
+----------------------------------------------------------------------
+• 配置 round3_best, higher_ema, ultra_ema, lower_lr, tighter_clip, stronger_decay, lower_clip_threshold, smaller_huber, stable_combined, ultra_stable 检测到震荡，建议降低学习率或增加EMA衰减率
+• 配置 round3_best, higher_ema, ultra_ema, lower_lr, tighter_clip 损失较高，建议增加训练步数或调整网络架构
+• 推荐使用配置 'ultra_stable'，它的遗憾损失最低
+
+======================================================================

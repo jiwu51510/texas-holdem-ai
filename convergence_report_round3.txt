@@ -1,0 +1,33 @@
+======================================================================
+收敛控制参数验证报告
+======================================================================
+生成时间: 2025-12-16 16:52:43
+
+实验结果摘要:
+----------------------------------------------------------------------
+配置名称                 遗憾损失         策略损失         熵趋势          震荡    
+----------------------------------------------------------------------
+round2_best          1.227317     0.702657     stable       是     
+larger_network       0.871197     0.915098     decreasing   是     
+smaller_network      0.862387     1.014254     stable       是     
+deeper_network       1.108797     0.869719     decreasing   是     
+larger_batch         1.083115     0.926335     stable       是     
+smaller_batch        1.087773     0.897251     stable       是     
+larger_buffer        1.325829     0.826215     decreasing   是     
+more_cfr             0.852265     0.900124     stable       是     
+more_train_steps     1.021589     0.941082     decreasing   是     
+round3_optimal       1.013036     0.970380     increasing   是     
+
+比较分析:
+----------------------------------------------------------------------
+最佳遗憾损失: more_cfr
+最佳策略损失: round2_best
+最稳定配置: None
+
+调优建议:
+----------------------------------------------------------------------
+• 配置 round2_best, larger_network, smaller_network, deeper_network, larger_batch, smaller_batch, larger_buffer, more_cfr, more_train_steps, round3_optimal 检测到震荡，建议降低学习率或增加EMA衰减率
+• 配置 round2_best, deeper_network, larger_batch, smaller_batch, larger_buffer, more_train_steps, round3_optimal 损失较高，建议增加训练步数或调整网络架构
+• 推荐使用配置 'more_cfr'，它的遗憾损失最低
+
+======================================================================
