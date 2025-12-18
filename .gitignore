@@ -62,6 +62,14 @@ analysis_output/
 !configs/*.json
 !package.json
 
+# Node.js
+node_modules/
+package-lock.json
+
+# 外部依赖（嵌套git仓库）
+solver_tools/OMPEval/
+solver_tools/wasm-postflop/
+
 # OS
 .DS_Store
 Thumbs.db
