@@ -266,6 +266,135 @@ export function handIndexToString(handIndex) {
     return 'Unknown';
 }
 
+/**
+ * 求解转牌阶段
+ * @param {Object} config - 配置对象
+ * @returns {Object} - 求解结果
+ */
+export async function solveTurn(config) {
+    const {
+        oopRange,      // OOP范围字符串
+        ipRange,       // IP范围字符串
+        board,         // 牌面字符串 (4张牌)
+        startingPot = 100,
+        effectiveStack = 100,
+        oopTurnBetSizes = '33,50,75',    // OOP转牌下注尺寸
+        ipTurnBetSizes = '33,50,75',     // IP转牌下注尺寸
+        oopTurnRaiseSizes = '50,100',    // OOP转牌加注尺寸
+        ipTurnRaiseSizes = '50,100',     // IP转牌加注尺寸
+        oopRiverBetSizes = '33,50,75,100',    // OOP河牌下注尺寸
+        ipRiverBetSizes = '33,50,75,100',     // IP河牌下注尺寸
+        oopRiverRaiseSizes = '50,100',   // OOP河牌加注尺寸
+        ipRiverRaiseSizes = '50,100',    // IP河牌加注尺寸
+        targetExploitability = 0.5,  // 目标可利用度 (%)
+        maxIterations = 1000,
+    } = config;
+    
+    await initSolver();
+    const game = GameManager.new();
+    
+    try {
+        // 解析范围
+        const oopWeights = await parseRange(oopRange);
+        const ipWeights = await parseRange(ipRange);
+        const boardArray = parseBoard(board);
+        
+        // 转换bet sizes为正确格式 (需要加%)
+        const oopTurnBetStr = oopTurnBetSizes.split(',').map(s => s.trim() + '%').join(',');
+        const ipTurnBetStr = ipTurnBetSizes.split(',').map(s => s.trim() + '%').join(',');
+        const oopTurnRaiseStr = oopTurnRaiseSizes ? oopTurnRaiseSizes.split(',').map(s => s.trim() + '%').join(',') : '';
+        const ipTurnRaiseStr = ipTurnRaiseSizes ? ipTurnRaiseSizes.split(',').map(s => s.trim() + '%').join(',') : '';
+        const oopRiverBetStr = oopRiverBetSizes.split(',').map(s => s.trim() + '%').join(',');
+        const ipRiverBetStr = ipRiverBetSizes.split(',').map(s => s.trim() + '%').join(',');
+        const oopRiverRaiseStr = oopRiverRaiseSizes ? oopRiverRaiseSizes.split(',').map(s => s.trim() + '%').join(',') : '';
+        const ipRiverRaiseStr = ipRiverRaiseSizes ? ipRiverRaiseSizes.split(',').map(s => s.trim() + '%').join(',') : '';
+        
+        // 初始化游戏
+        const error = game.init(
+            oopWeights,
+            ipWeights,
+            boardArray,
+            startingPot,
+            effectiveStack,
+            0,      // rake_rate
+            0,      // rake_cap
+            false,  // donk_option
+            '',     // oop_flop_bet
+            '',     // oop_flop_raise
+            oopTurnBetStr,   // oop_turn_bet
+            oopTurnRaiseStr, // oop_turn_raise
+            '',     // oop_turn_donk
+            oopRiverBetStr,  // oop_river_bet
+            oopRiverRaiseStr,  // oop_river_raise
+            '',     // oop_river_donk
+            '',     // ip_flop_bet
+            '',     // ip_flop_raise
+            ipTurnBetStr,    // ip_turn_bet
+            ipTurnRaiseStr,  // ip_turn_raise
+            ipRiverBetStr,   // ip_river_bet
+            ipRiverRaiseStr, // ip_river_raise
+            1.5,    // add_allin_threshold (150%)
+            0.2,    // force_allin_threshold (20%)
+            0.1,    // merging_threshold (10%)
+            '',     // added_lines
+            ''      // removed_lines
+        );
+        
+        if (error) {
+            throw new Error(`Init error: ${error}`);
+        }
+        
+        // 分配内存
+        game.allocate_memory(false);
+        
+        // 迭代求解
+        let exploitability = Infinity;
+        let iteration = 0;
+        
+        while (iteration < maxIterations && exploitability > targetExploitability) {
+            game.solve_step(iteration);
+            iteration++;
+            
+            if (iteration % 100 === 0) {
+                exploitability = game.exploitability();
+            }
+        }
+        
+        exploitability = game.exploitability();
+        
+        // 获取结果
+        game.finalize();
+        
+        // 获取OOP和IP的私有牌
+        const oopCards = game.private_cards(0);
+        const ipCards = game.private_cards(1);
+        
+        // 获取策略结果
+        const results = game.get_results();
+        const numActions = game.num_actions();
+        const actions = game.actions_after(new Uint32Array(0));
+        
+        return {
+            exploitability,
+            iterations: iteration,
+            oopCards: Array.from(oopCards),
+            ipCards: Array.from(ipCards),
+            results: Array.from(results),
+            numActions,
+            actions,
+        };
+        
+    } finally {
+        // 必须手动释放WASM内存，否则会内存泄漏
+        try {
+            game.free();
+        } catch (e) {
+            // 忽略释放错误
+        }
+    }
+}
+
+
 // 测试函数
 async function test() {
     console.log('Testing wasm-postflop solver...');
