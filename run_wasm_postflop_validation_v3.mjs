@@ -423,7 +423,7 @@ async function runExperiment() {
     console.log('  当手牌胜率和范围胜率都相近时，策略是否相同？');
     console.log('\n范围策略: 每100组实验随机生成一次OOP和IP范围');
     
-    const NUM_SCENARIOS = 100000;  // 10万次测试
+    const NUM_SCENARIOS = 1000;  // 1000次测试
     const RANGE_REFRESH_INTERVAL = 100;  // 每100组实验随机一次范围
     const scenarios = [];
     const usedRanges = [];  // 记录使用过的范围
